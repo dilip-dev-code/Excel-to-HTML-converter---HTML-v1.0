@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script lang="javascript" src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
+	<head>
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">	
+	</head>
+<style>
+    .HEADERS__ {
+        width: 100%;
+        padding: 15px;
+        background-color: skyblue;
+        box-shadow: 3px 6px 8px gray;
+    }
+    table,th,td {
+        border: 2px solid black;
+        border-collapse: collapse;
+    }
+</style>
+
+<body>
+<div class="HEADERS__">
+    <h1 style="margin-left:500px;">Excel To Html Convertor</h1>
+    <label style="margin-left:500px;" for="myfile">Import Excel File <i class="fa fa-file-excel-o" aria-hidden="true"></i></label><br><br>
+    <input style="margin-left:500px;" type="file" id="excelFile" name="myfile" accept=".xls, .xlsx"><br><br>
+    <button style="margin-left:500px;" id="download"><i class="fa fa-download"></i>&nbsp; Download Data</button>
+    <label id="loader" style="margin-left:500px; font-size: 20px;">loading...</label>
+</div>
+
+<div style="margin-top:30px;padding:20px;">
+    
+    <table id="table"></table>
+</div>
+
+</body>
+<script>
+$(document).ready(function(){
+    var data_toexport_String = "";
+    $("#download").hide();
+    $("#loader").hide();
+    // after File Import thread Change Event handle Here
+    $('#excelFile').change(function (event) {
+        $("#loader").show();
+        //const file = event.target.files[0];
+        extract_file_data(event).then((exceldata)=>{
+            $("#download").fadeIn(500);
+            $("#loader").hide();
+            // read Hole Document Data
+            //read Entire Page Source include CSS+JS+LibCDN File All Will Dummp Into This Page);
+            setTimeout(function() {
+
+                var table = $("#table");
+                var firstTd = $("td:nth-child(3)", table)[2].innerHTML;
+                if(String(firstTd).toLowerCase().includes('technical requirement')){
+                    $("td:nth-child(13)", table)[1].innerHTML = "Legacy ID";
+                    $("td:nth-child(16)", table)[1].innerHTML = "JAMA Title";
+                    $("td:nth-child(1)", table)[1].innerHTML = "Amendment Description";
+                    $("td:nth-child(4)", table)[1].innerHTML = "Amendment Description";
+                    $("td:nth-child(15)", table)[1].innerHTML = "Jama Action";
+                    $("td:nth-child(9)", table)[1].innerHTML = "Informative Description";
+                    $("td:nth-child(11)", table)[1].innerHTML = "Verification Description";
+                }
+
+
+                data_toexport_String = $('html')[0].outerHTML;
+                var data  = String(data_toexport_String).split("<div class=");
+                data_toexport_String =data[0];
+                //console.log(data.split("</div>"));
+                data_toexport_String += data[1].split("</div>")[1];
+            },5)
+        }).catch((error_data)=>{
+            console.log(error_data);
+        });
+    });
+
+    $("#download").click(function(){
+        var textToSave = data_toexport_String;
+        var textToSaveAsBlob = new Blob([textToSave], {type:"text/plain"});
+        var textToSaveAsURL = window.URL.createObjectURL(textToSaveAsBlob);
+        var fileNameToSaveAs = 'filename.html';
+        
+        var downloadLink = document.createElement("a");
+        downloadLink.download = fileNameToSaveAs;
+        downloadLink.innerHTML = "Download File";
+        downloadLink.href = textToSaveAsURL;
+        downloadLink.onclick = destroyClickedElement;
+        downloadLink.style.display = "none";
+        document.body.appendChild(downloadLink);
+        
+        downloadLink.click();
+    });
+});
+
+function destroyClickedElement(event){document.body.removeChild(event.target);}
+
+function extract_file_data(e){
+    return new Promise((resolve,reject)=>{
+        var raw_data = "";
+        ix=1;
+        var reader = new FileReader();
+        reader.readAsArrayBuffer(e.target.files[0]);
+        reader.onload = function(e) {
+            var data = new Uint8Array(reader.result);
+            var wb = XLSX.read(data,{type:'array'});
+            var htmlstr = XLSX.write(wb,{sheet:"Sheet1", type:'binary',bookType:'html'});
+            raw_data+=htmlstr;
+        }
+        reader.onloadend = function(){ 
+            var req_data = raw_data.split('<table>').pop().split('</table>')[0]; // returns 'two'
+            $('#table').append(req_data);
+            // remove first 2 row 
+            for(var i=0;i<2;i++){
+                setTimeout(function(){
+                    document.getElementById("table").deleteRow(1);
+                },0.01);
+            }
+
+            //remove 3rd Column
+            $('#table tr').find('td:eq(2),th:eq(2)').remove();
+            $('#table tr').find('td:eq(4),th:eq(4)').remove();
+			$('#table tr').find('td:eq(4),th:eq(4)').remove();
+			$('#table tr').find('td:eq(6),th:eq(6)').remove();
+			$('#table tr').find('td:eq(6),th:eq(6)').remove();
+			$('#table tr').find('td:eq(9),th:eq(9)').remove();
+			$('#table tr').find('td:eq(10),th:eq(10)').remove();
+			$('#table tr').find('td:eq(10),th:eq(10)').remove();
+			$('#table tr').find('td:eq(10),th:eq(10)').remove();
+			$('#table tr').find('td:eq(11),th:eq(11)').remove();
+			$('#table tr').find('td:eq(13),th:eq(13)').remove();
+			$('#table tr').find('td:eq(13),th:eq(13)').remove();
+			$('#table tr').find('td:eq(13),th:eq(13)').remove();
+			$('#table tr').find('td:eq(13),th:eq(13)').remove();
+			$('#table tr').find('td:eq(14),th:eq(14)').remove();
+			$('#table tr').find('td:eq(14),th:eq(14)').remove();
+			$('#table tr').find('td:eq(14),th:eq(14)').remove();
+			$('#table tr').find('td:eq(16),th:eq(16)').remove();
+			$('#table tr').find('td:eq(19),th:eq(19)').remove();
+			$('#table tr').find('td:eq(20),th:eq(20)').remove();
+			$('#table tr').find('td:eq(14),th:eq(14)').remove();
+			$('#table tr').find('td:eq(18),th:eq(18)').remove();
+			$('#table tr').find('td:eq(18),th:eq(18)').remove();
+			$('#table tr').find('td:eq(18),th:eq(18)').remove();
+			$('#table tr').find('td:eq(18),th:eq(18)').remove();
+			$('#table tr').find('td:eq(18),th:eq(18)').remove();
+			$('#table tr').find('td:eq(18),th:eq(18)').remove();
+            resolve({'exceldata':raw_data,'tabledata':req_data});
+        }
+    });
+}
+</script>
+</html>
